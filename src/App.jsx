@@ -336,9 +336,12 @@ function APIKeyConfig({ apiKey, onSave, onClose }) {
           </button>
         </div>
 
-        <p style={{ marginTop: 16, fontSize: 11, color: T.inkLight, lineHeight: 1.6 }}>
-          🔒 Your API key is stored locally in your browser and never sent to any server except Anthropic's API.
-        </p>
+        <div style={{ marginTop: 16, padding: "10px 12px", background: T.greenBg,
+          border: `1px solid ${T.greenBorder}`, borderRadius: 6 }}>
+          <div style={{ fontSize: 11, color: T.green, lineHeight: 1.6 }}>
+            <strong>🔒 Privacy & Security:</strong> Your API key is stored locally in your browser only. All customer data you enter is processed in your browser and sent directly to Anthropic's API—no data is stored on our servers. Reports are generated client-side and saved to your device.
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1904,6 +1907,25 @@ export default function App() {
                 {step === STEPS.length - 2 ? "Review Draft →" : "Next →"}
               </Btn>
             ) : null}
+          </div>
+        </div>
+      </div>
+
+      {/* ── SECURITY DISCLAIMER ── */}
+      <div style={{ maxWidth: 840, margin: "0 auto", padding: "0 20px 24px" }}>
+        <div style={{ background: T.xxlight, border: `1px solid ${T.border}`, borderRadius: 8,
+          padding: "12px 16px", display: "flex", alignItems: "flex-start", gap: 12 }}>
+          <div style={{ flexShrink: 0, marginTop: 1 }}>
+            <Ic d={D.info} s={16} c={T.mid} sw={2} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.dark, marginBottom: 4,
+              textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Privacy & Security Notice
+            </div>
+            <div style={{ fontSize: 12, color: T.inkMid, lineHeight: 1.6 }}>
+              <strong style={{ color: T.ink }}>No data is stored on servers.</strong> All customer data you enter is processed locally in your browser and sent directly to Anthropic's API for AI analysis. Reports are generated client-side and downloaded to your computer. This application hosts only code files—no databases, no data storage, no server-side processing.
+            </div>
           </div>
         </div>
       </div>
