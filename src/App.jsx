@@ -51,13 +51,18 @@ async function callClaude({ messages, system, tools, maxTokens = 1500, apiKey })
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 55000); // 55s hard limit
 
+  // Use proxy in development, direct API in production
+  const isDev = import.meta.env.DEV;
+  const endpoint = isDev ? "/api/v1/messages" : "https://api.anthropic.com/v1/messages";
+
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01"
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
       },
       body: JSON.stringify(body),
       signal: controller.signal,
@@ -1365,7 +1370,9 @@ Category data: ${JSON.stringify(cats)}
 ${channelLine}
 ${churnLine}
 ${customPromptsLine}
-Notes: ${d.qa.notes || ""}
+Additional QA Notes: ${d.qa.notes || "none provided"}
+
+IMPORTANT: If Additional QA Notes are provided above, weave them naturally into the relevant sections below (strengths, gaps, channel/churn risk, or business outcomes). Use them to add context, specific examples, or reinforce key findings.
 
 Write in ${lang} with these parts:
 1. **Headline finding** — one sharp sentence summarising the gap vs ${QA_BENCHMARK}% benchmark
@@ -1386,20 +1393,7 @@ ${customPromptsLine}
 
 Keep it concise — this should feel like expert advice from a QA consultant, not a feature list.` : ""}
 
-Then add a **Zendesk Copilot** closing section (use a header):
-- 2–3 sentences on how Copilot raises consistency and agent speed by surfacing suggested replies, macros, and procedures in real time as agents type — no manual searching required
-- Mention real-time QA scoring enables supervisors to identify and escalate churn-risk tickets as they happen
-- Then write: "Here are a couple of examples of macros that could immediately help ${d.cx.name}'s agents respond faster and more consistently:"
-- Then generate **2 concrete example Macros** focused on agent speed and response consistency — NOT complex integrations. Each macro should be something an agent could apply in seconds during a live conversation. Format each cleanly as:
-
-  **[Macro Name]**
-  *When to use:* [one sentence trigger]
-  *What it does:* [one sentence describing the pre-written response or action it inserts]
-  *Addresses:* [which specific QA gap it fixes]
-
-- Keep the Action description to one plain sentence — no boxes, no capitals, no technical implementation detail
-
-Max 420 words. In ${lang}.`;
+Max 380 words. In ${lang}.`;
     },
     agents: (d) => {
       const lang = LANGUAGES.find(l => l.code === d.settings.language)?.label || "English";
@@ -1488,7 +1482,7 @@ Total topics mapped: ${allData.agents.extractedData?.totalTopics ?? "unknown"}
 
 Write:
 1. **Summary** — 3–4 bullet points connecting all findings into a coherent narrative
-2. **Recommended Next Steps** — 3 concrete actions (QA deep dive, Copilot activation, AI Agents pilot)
+2. **Recommended Next Steps** — 3 concrete actions (QA deep dive, custom prompts implementation, AI Agents pilot)
 3. **Call to action** — one sentence inviting them to an Innovation Day
 
 Max 200 words. In ${LANGUAGES.find(l => l.code === allData.settings.language)?.label || "English"}.`
