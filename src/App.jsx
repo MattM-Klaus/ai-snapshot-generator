@@ -1663,6 +1663,15 @@ export default function App() {
     setAPIKey(key);
   };
 
+  // Inject CSS spin animation once - MUST BE BEFORE EARLY RETURN
+  useEffect(() => {
+    if (document.getElementById("zd-spin-style")) return;
+    const s = document.createElement("style");
+    s.id = "zd-spin-style";
+    s.textContent = `@keyframes zd-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } .zd-spinning { animation: zd-spin 0.8s linear infinite; display: inline-block; }`;
+    document.head.appendChild(s);
+  }, []);
+
   // Show API key modal if no key is stored
   if (!apiKey || showAPIKeyModal) {
     console.log("Showing API Key Modal", { apiKey, showAPIKeyModal });
@@ -1679,15 +1688,6 @@ export default function App() {
       </div>
     );
   }
-
-  // Inject CSS spin animation once
-  useEffect(() => {
-    if (document.getElementById("zd-spin-style")) return;
-    const s = document.createElement("style");
-    s.id = "zd-spin-style";
-    s.textContent = `@keyframes zd-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } .zd-spinning { animation: zd-spin 0.8s linear infinite; display: inline-block; }`;
-    document.head.appendChild(s);
-  }, []);
 
   const set = section => val => setData(p => ({ ...p, [section]: val }));
   const setSkip = key => val => setData(p => ({ ...p, skipped: { ...p.skipped, [key]: val } }));
