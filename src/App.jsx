@@ -254,7 +254,8 @@ function DropZone({ files, onAdd, onRemove, label, accept = "image/*,.pdf", mult
 
 // ─── API KEY CONFIGURATION MODAL ──────────────────────────────────────────────
 function APIKeyConfig({ apiKey, onSave, onClose }) {
-  const [key, setKey] = useState(apiKey);
+  console.log("APIKeyConfig rendering", { apiKey });
+  const [key, setKey] = useState(apiKey || "");
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
 
@@ -1664,7 +1665,19 @@ export default function App() {
 
   // Show API key modal if no key is stored
   if (!apiKey || showAPIKeyModal) {
-    return <APIKeyConfig apiKey={apiKey} onSave={handleSaveAPIKey} onClose={() => setShowAPIKeyModal(false)} />;
+    console.log("Showing API Key Modal", { apiKey, showAPIKeyModal });
+    return (
+      <div style={{ minHeight: "100vh", background: T.bg }}>
+        <APIKeyConfig
+          apiKey={apiKey || ""}
+          onSave={handleSaveAPIKey}
+          onClose={() => {
+            console.log("Closing API Key Modal");
+            setShowAPIKeyModal(false);
+          }}
+        />
+      </div>
+    );
   }
 
   // Inject CSS spin animation once
