@@ -31,19 +31,8 @@ const STEPS = [
 
 const QA_BENCHMARK = 86;
 
-// ─── API KEY STORAGE ──────────────────────────────────────────────────────────
-const API_KEY_STORAGE_KEY = "anthropic_api_key";
-const getStoredAPIKey = () => {
-  try { return localStorage.getItem(API_KEY_STORAGE_KEY) || ""; } catch { return ""; }
-};
-const setStoredAPIKey = (key) => {
-  try { localStorage.setItem(API_KEY_STORAGE_KEY, key); } catch {}
-};
-
-// ─── CLAUDE API CALL (WITH API KEY) ───────────────────────────────────────────
-async function callClaude({ messages, system, tools, maxTokens = 1500, apiKey }) {
-  if (!apiKey) throw new Error("API key is required");
-
+// ─── CLAUDE API CALL ──────────────────────────────────────────────────────────
+async function callClaude({ messages, system, tools, maxTokens = 1500 }) {
   const body = { model: "claude-sonnet-4-20250514", max_tokens: maxTokens, messages };
   if (system) body.system = system;
   if (tools) body.tools = tools;
@@ -53,12 +42,7 @@ async function callClaude({ messages, system, tools, maxTokens = 1500, apiKey })
 
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01"
-      },
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -102,8 +86,6 @@ const D = {
   spin: "M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83",
   copy: "M8 4H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2M8 4a2 2 0 012-2h4a2 2 0 012 2M8 4h8",
   trash: "M3 6h18M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6M9 6V4h6v2",
-  key: "M21 10a7 7 0 11-14 0 7 7 0 0114 0M3 21l5.5-5.5M18 10h.01",
-  settings: "M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z",
 };
 
 // ─── BASE COMPONENTS ──────────────────────────────────────────────────────────
@@ -252,116 +234,6 @@ function DropZone({ files, onAdd, onRemove, label, accept = "image/*,.pdf", mult
   );
 }
 
-// ─── API KEY CONFIGURATION MODAL ──────────────────────────────────────────────
-function APIKeyConfig({ apiKey, onSave, onClose }) {
-  const [key, setKey] = useState(apiKey);
-  const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState(null);
-
-  const testKey = async () => {
-    if (!key.trim()) return;
-    setTesting(true);
-    setTestResult(null);
-    try {
-      await callClaude({
-        messages: [{ role: "user", content: "Say hello in 3 words" }],
-        maxTokens: 20,
-        apiKey: key.trim()
-      });
-      setTestResult({ success: true, message: "✓ API key is valid!" });
-    } catch (e) {
-      setTestResult({ success: false, message: e.message });
-    }
-    setTesting(false);
-  };
-
-  const handleSave = () => {
-    onSave(key.trim());
-    onClose();
-  };
-
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex",
-      alignItems: "center", justifyContent: "center", zIndex: 9999, padding: 20 }}>
-      <div style={{ background: T.white, borderRadius: 16, maxWidth: 520, width: "100%",
-        padding: "28px 32px", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: T.indigoBg,
-            display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Ic d={D.key} s={20} c={T.indigo} sw={2} />
-          </div>
-          <div>
-            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: T.dark }}>
-              Anthropic API Key Required
-            </h2>
-            <p style={{ margin: "2px 0 0", fontSize: 13, color: T.inkMid }}>
-              Enter your API key to use Claude AI features
-            </p>
-          </div>
-        </div>
-
-        <div style={{ background: T.xxlight, border: `1px solid ${T.border}`, borderRadius: 8,
-          padding: 14, marginBottom: 16 }}>
-          <p style={{ fontSize: 12, color: T.inkMid, lineHeight: 1.6, margin: 0 }}>
-            <strong style={{ color: T.ink }}>How to get your API key:</strong><br />
-            1. Go to <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer"
-              style={{ color: T.indigo, fontWeight: 600 }}>console.anthropic.com</a><br />
-            2. Sign up or log in (free account!)<br />
-            3. Navigate to API Keys → Create Key<br />
-            4. Copy and paste it below
-          </p>
-        </div>
-
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: "block", fontSize: 11, fontWeight: 700, textTransform: "uppercase",
-            letterSpacing: "0.05em", color: T.inkMid, marginBottom: 8 }}>
-            API Key
-          </label>
-          <input
-            type="password"
-            value={key}
-            onChange={(e) => setKey(e.target.value)}
-            placeholder="sk-ant-..."
-            style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: `1.5px solid ${T.border}`,
-              fontSize: 13, fontFamily: "monospace", outline: "none", boxSizing: "border-box" }}
-            onKeyDown={(e) => e.key === "Enter" && handleSave()}
-          />
-          {testResult && (
-            <div style={{ marginTop: 10, padding: "8px 12px", borderRadius: 6,
-              background: testResult.success ? T.greenBg : T.redBg,
-              border: `1px solid ${testResult.success ? T.greenBorder : T.redBorder}`,
-              fontSize: 12, color: testResult.success ? T.green : T.red }}>
-              {testResult.message}
-            </div>
-          )}
-        </div>
-
-        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-          <button onClick={testKey} disabled={!key.trim() || testing}
-            style={{ padding: "8px 16px", borderRadius: 8, border: `1.5px solid ${T.border}`,
-              background: T.white, color: T.inkMid, fontSize: 13, fontWeight: 600, cursor: "pointer",
-              opacity: !key.trim() || testing ? 0.5 : 1 }}>
-            {testing ? "Testing..." : "Test Key"}
-          </button>
-          <button onClick={handleSave} disabled={!key.trim()}
-            style={{ padding: "8px 16px", borderRadius: 8, border: `1.5px solid ${T.dark}`,
-              background: T.dark, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
-              opacity: !key.trim() ? 0.5 : 1 }}>
-            Save & Continue
-          </button>
-        </div>
-
-        <div style={{ marginTop: 16, padding: "10px 12px", background: T.greenBg,
-          border: `1px solid ${T.greenBorder}`, borderRadius: 6 }}>
-          <div style={{ fontSize: 11, color: T.green, lineHeight: 1.6 }}>
-            <strong>🔒 Privacy & Security:</strong> Your API key is stored locally in your browser only. All customer data you enter is processed in your browser and sent directly to Anthropic's API—no data is stored on our servers. Reports are generated client-side and saved to your device.
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── AI STATUS BADGE ──────────────────────────────────────────────────────────
 function AIStatusBadge({ status, label }) {
   if (status === "idle") return null;
@@ -423,7 +295,7 @@ function StepHdr({ num, title, sub }) {
 }
 
 // ─── CX OVERVIEW STEP ────────────────────────────────────────────────────────
-function CXStep({ data, onChange, skipped, onSkip, apiKey }) {
+function CXStep({ data, onChange, skipped, onSkip }) {
   const set = f => v => onChange({ ...data, [f]: v });
   const [searchStatus, setSearchStatus] = useState("idle");
   const [elapsed, setElapsed] = useState(0);
@@ -452,7 +324,6 @@ ${data.searchPrompt ? `5. **Specific Focus:** ${data.searchPrompt}` : ""}
 Be specific to this company — not generic. Use bullet points. Note where you're uncertain.`
         }],
         maxTokens: 1200,
-        apiKey,
       });
       set("webResearch")(result);
       setSearchStatus("done");
@@ -834,7 +705,7 @@ function PromptCard({ prompt, selected, onToggle, onEdit }) {
 
 
 // ─── QA STEP ─────────────────────────────────────────────────────────────────
-function QAStep({ data, onChange, skipped, onSkip, apiKey }) {
+function QAStep({ data, onChange, skipped, onSkip }) {
   const set = f => v => onChange({ ...data, [f]: v });
   const [files, setFiles] = useState([]);
   const [imgStatus, setImgStatus] = useState("idle");
@@ -875,8 +746,7 @@ function QAStep({ data, onChange, skipped, onSkip, apiKey }) {
 }
 Use null for any values not visible. Return only JSON, no other text.` }
           ]
-        }],
-        apiKey,
+        }]
       });
       const clean = result.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(clean);
@@ -994,7 +864,7 @@ Use null for any values not visible. Return only JSON, no other text.` }
 }
 
 // ─── AI AGENTS STEP ───────────────────────────────────────────────────────────
-function AgentsStep({ data, onChange, skipped, onSkip, apiKey }) {
+function AgentsStep({ data, onChange, skipped, onSkip }) {
   const set = f => v => onChange({ ...data, [f]: v });
   const [files, setFiles] = useState([]);
   const [imgStatus, setImgStatus] = useState("idle");
@@ -1059,7 +929,7 @@ Rules:
 - totalTopics = total number of rows in the Use-case Automation Roadmap table (count ALL rows including those with 0%)
 - For each phase, extract the top 3 topics BY HIGHEST ticketPct (% of tickets per support topic column)
 - Only include topics that belong to that phase (Implementation Phase column)
-- arBenchmark = the Benchmark AR Rate %
+- arBenchmark = the Benchmark AR Rate % 
 - If a phase has 0% automation potential, still include it in phases but set topTopicsPerPhase for that phase to an empty array []
 - If a phase has fewer than 3 topics with data, include all available
 - Use null for any values not visible
@@ -1067,7 +937,6 @@ Rules:
           ]
         }],
         maxTokens: 1500,
-        apiKey,
       });
       const clean = result.replace(/```json|```/g, "").trim();
       set("extractedData")(JSON.parse(clean));
@@ -1268,7 +1137,7 @@ function SettingsStep({ data, onChange }) {
 }
 
 // ─── DRAFT & EDIT STEP ───────────────────────────────────────────────────────
-function DraftStep({ allData, onGenerate, generating, apiKey }) {
+function DraftStep({ allData, onGenerate, generating }) {
   const [draftStatus, setDraftStatus] = useState("idle");
   const [draft, setDraft] = useState(null);
   const [activeSection, setActiveSection] = useState(0);
@@ -1493,7 +1362,6 @@ Write:
 Max 200 words. In ${LANGUAGES.find(l => l.code === allData.settings.language)?.label || "English"}.`
             }],
             maxTokens: 400,
-            apiKey,
           });
         } else {
           const prompt = SECTION_PROMPTS[key]?.(allData);
@@ -1501,7 +1369,6 @@ Max 200 words. In ${LANGUAGES.find(l => l.code === allData.settings.language)?.l
             system: "You are an expert Zendesk AI Specialist writing a client-facing AI Snapshot report. Write clearly, confidently, and with evidence. Use markdown formatting.",
             messages: [{ role: "user", content: prompt }],
             maxTokens: 900,
-            apiKey,
           });
         }
 
@@ -1652,20 +1519,6 @@ export default function App() {
   const [data, setData] = useState(initData());
   const [generating, setGenerating] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
-
-  // API Key Management
-  const [apiKey, setAPIKey] = useState(getStoredAPIKey());
-  const [showAPIKeyModal, setShowAPIKeyModal] = useState(!getStoredAPIKey());
-
-  const handleSaveAPIKey = (key) => {
-    setStoredAPIKey(key);
-    setAPIKey(key);
-  };
-
-  // Show API key modal if no key is stored
-  if (!apiKey || showAPIKeyModal) {
-    return <APIKeyConfig apiKey={apiKey} onSave={handleSaveAPIKey} onClose={() => setShowAPIKeyModal(false)} />;
-  }
 
   // Inject CSS spin animation once
   useEffect(() => {
@@ -1920,16 +1773,6 @@ export default function App() {
           </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={() => setShowAPIKeyModal(true)}
-            style={{ padding: "5px 10px", background: "rgba(255,255,255,0.08)",
-              borderRadius: 5, border: "none", color: "rgba(255,255,255,0.6)",
-              fontSize: 11, cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
-              transition: "all 0.15s" }}
-            onMouseEnter={e => e.target.style.background = "rgba(255,255,255,0.15)"}
-            onMouseLeave={e => e.target.style.background = "rgba(255,255,255,0.08)"}>
-            <Ic d={D.key} s={13} c="rgba(255,255,255,0.6)" />
-            API Key
-          </button>
           {lang && (
             <div style={{ padding: "3px 10px", background: "rgba(255,255,255,0.08)",
               borderRadius: 5, color: "rgba(255,255,255,0.6)", fontSize: 12 }}>
@@ -1976,11 +1819,11 @@ export default function App() {
 
       {/* CONTENT */}
       <div style={{ maxWidth: 840, margin: "0 auto", padding: "26px 20px 80px" }}>
-        {step === 0 && <CXStep data={data.cx} onChange={set("cx")} skipped={data.skipped.cx} onSkip={setSkip("cx")} apiKey={apiKey} />}
-        {step === 1 && <QAStep data={{...data.qa, _companyName: data.cx.name, _website: data.cx.website, _industry: data.cx.industry}} onChange={v => set("qa")({...v, _companyName: undefined, _website: undefined, _industry: undefined})} skipped={data.skipped.qa} onSkip={setSkip("qa")} apiKey={apiKey} />}
-        {step === 2 && <AgentsStep data={data.agents} onChange={set("agents")} skipped={data.skipped.agents} onSkip={setSkip("agents")} apiKey={apiKey} />}
+        {step === 0 && <CXStep data={data.cx} onChange={set("cx")} skipped={data.skipped.cx} onSkip={setSkip("cx")} />}
+        {step === 1 && <QAStep data={{...data.qa, _companyName: data.cx.name, _website: data.cx.website, _industry: data.cx.industry}} onChange={v => set("qa")({...v, _companyName: undefined, _website: undefined, _industry: undefined})} skipped={data.skipped.qa} onSkip={setSkip("qa")} />}
+        {step === 2 && <AgentsStep data={data.agents} onChange={set("agents")} skipped={data.skipped.agents} onSkip={setSkip("agents")} />}
         {step === 3 && <SettingsStep data={data.settings} onChange={set("settings")} />}
-        {step === 4 && <DraftStep allData={data} onGenerate={handleExport} generating={generating} apiKey={apiKey} />}
+        {step === 4 && <DraftStep allData={data} onGenerate={handleExport} generating={generating} />}
 
         {/* NAV */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -1995,25 +1838,6 @@ export default function App() {
                 {step === STEPS.length - 2 ? "Review Draft →" : "Next →"}
               </Btn>
             ) : null}
-          </div>
-        </div>
-      </div>
-
-      {/* ── SECURITY DISCLAIMER ── */}
-      <div style={{ maxWidth: 840, margin: "0 auto", padding: "0 20px 24px" }}>
-        <div style={{ background: T.xxlight, border: `1px solid ${T.border}`, borderRadius: 8,
-          padding: "12px 16px", display: "flex", alignItems: "flex-start", gap: 12 }}>
-          <div style={{ flexShrink: 0, marginTop: 1 }}>
-            <Ic d={D.info} s={16} c={T.mid} sw={2} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: T.dark, marginBottom: 4,
-              textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              Privacy & Security Notice
-            </div>
-            <div style={{ fontSize: 12, color: T.inkMid, lineHeight: 1.6 }}>
-              <strong style={{ color: T.ink }}>No data is stored on servers.</strong> All customer data you enter is processed locally in your browser and sent directly to Anthropic's API for AI analysis. Reports are generated client-side and downloaded to your computer. This application hosts only code files—no databases, no data storage, no server-side processing.
-            </div>
           </div>
         </div>
       </div>
