@@ -578,7 +578,7 @@ const PROMPT_TYPES = [
     desc: "AI tags conversations matching this condition", color: T.indigo },
 ];
 
-function CustomPromptsSection({ cxName, website, industry, value = {}, onChange }) {
+function CustomPromptsSection({ cxName, website, industry, value = {}, onChange, apiKey }) {
   const [open, setOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState(null);
@@ -635,6 +635,7 @@ No other text. Just the JSON array.`;
         system: "You are a world-class Zendesk QA expert. You respond ONLY with valid JSON arrays — no markdown, no explanation, no preamble.",
         messages: [{ role: "user", content: promptContent }],
         maxTokens: 1500,
+        apiKey,
       });
       console.log("RAW RESULT:", result);
       const clean = result.replace(/```json|```/g, "").trim();
@@ -993,6 +994,7 @@ Use null for any values not visible. Return only JSON, no other text.` }
           industry={data._industry}
           value={data.customPrompts || {}}
           onChange={set("customPrompts")}
+          apiKey={apiKey}
         />
       </>}
     </div>
