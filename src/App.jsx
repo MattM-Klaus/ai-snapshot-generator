@@ -1760,12 +1760,20 @@ export default function App() {
               <div style="width:${pct}%;height:100%;background:${color};border-radius:20px"></div>
             </div>
             <div style="font-size:42px;font-weight:800;color:${color};letter-spacing:-0.03em;line-height:1;margin-bottom:14px">${pct}%</div>
-            ${phaseTopics.slice(0, 3).map(t => `
-              <div style="font-size:11px;color:${ZD.licorice};margin:5px 0;display:flex;justify-content:space-between;align-items:center">
-                <span>${t.topic || t}...</span>
-                <span style="font-weight:700;color:${color}">${t.ar || ""}${t.ar ? "%" : ""}</span>
+            ${phaseTopics.length > 0 ? `
+              <div style="border-top:1px solid rgba(0,0,0,0.1);padding-top:10px;margin-top:4px">
+                <div style="font-size:9px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:rgba(0,0,0,0.4);margin-bottom:6px">TOP TOPICS</div>
+                ${phaseTopics.slice(0, 3).map(t => `
+                  <div style="font-size:11px;color:${ZD.licorice};margin:4px 0;display:flex;justify-content:space-between;align-items:center;gap:8px">
+                    <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.name || "Unknown topic"}</span>
+                    <div style="display:flex;gap:6px;flex-shrink:0">
+                      <span style="font-weight:700;color:${color}">${t.ticketPct || 0}%</span>
+                      ${t.arBenchmark != null ? `<span style="font-size:10px;color:rgba(0,0,0,0.5)">AR ${t.arBenchmark}%</span>` : ""}
+                    </div>
+                  </div>
+                `).join("")}
               </div>
-            `).join("")}
+            ` : ""}
           </div>`;
       };
 
