@@ -1710,6 +1710,8 @@ export default function App() {
         .replace(/^## (.+)$/gm, `<h3 style="font-size:15px;font-weight:700;color:${ZD.licorice};margin:24px 0 8px;letter-spacing:-0.02em">$1</h3>`)
         .replace(/^# (.+)$/gm, `<h2 style="font-size:18px;font-weight:700;color:${ZD.licorice};margin:28px 0 10px;letter-spacing:-0.02em">$1</h2>`)
         .replace(/^\|(.+)\|$/gm, (row) => {
+          // Skip markdown table separator rows (e.g., |---|---|---|)
+          if (/^\|[\s\-:]+\|$/.test(row)) return "";
           const cells = row.split("|").filter(c => c.trim() !== "");
           return `<tr>${cells.map(c => `<td style="padding:7px 12px;border-bottom:1px solid ${ZD.sesame200};font-size:12px;line-height:1.5">${c.trim()}</td>`).join("")}</tr>`;
         })
