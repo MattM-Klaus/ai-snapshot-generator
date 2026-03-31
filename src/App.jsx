@@ -1736,6 +1736,51 @@ export default function App() {
     // Encapsulated icon (black circle + emoji) for section headers
     const sectionIcon = { cx: "◎", qa: "◈", agents: "◆", conclusion: "▶" };
 
+    // Generate visual automation chart cards for AI Agents section
+    const automationCharts = () => {
+      const phases = data.agents.extractedData?.phases;
+      const topics = data.agents.extractedData?.topTopicsPerPhase;
+      if (!phases) return "";
+
+      const phase1 = phases.phase1;
+      const phase2 = phases.phase2;
+      const phase3 = phases.phase3;
+      const phase1excluded = phase1?.pct === 0;
+
+      const phaseCard = (phase, color, bgColor, label, badge, badgeColor) => {
+        if (!phase || (phase1excluded && label === "KNOWLEDGE RETRIEVAL")) return "";
+        const pct = phase.pct || 0;
+        const phaseTopics = topics?.[label === "KNOWLEDGE RETRIEVAL" ? "phase1" : label === "AUTOMATION WITH PROCEDURES" ? "phase2" : "phase3"] || [];
+
+        return `
+          <div style="flex:1;background:${bgColor};border-radius:10px;padding:18px;border:1.5px solid ${color};position:relative">
+            ${badge ? `<div style="position:absolute;top:14px;right:14px;background:${badgeColor};color:#fff;font-size:9px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;padding:4px 10px;border-radius:4px">${badge}</div>` : ""}
+            <div style="font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:${color};margin-bottom:10px">${label}</div>
+            <div style="width:100%;height:8px;background:rgba(0,0,0,0.08);border-radius:20px;overflow:hidden;margin-bottom:10px">
+              <div style="width:${pct}%;height:100%;background:${color};border-radius:20px"></div>
+            </div>
+            <div style="font-size:42px;font-weight:800;color:${color};letter-spacing:-0.03em;line-height:1;margin-bottom:14px">${pct}%</div>
+            ${phaseTopics.slice(0, 3).map(t => `
+              <div style="font-size:11px;color:${ZD.licorice};margin:5px 0;display:flex;justify-content:space-between;align-items:center">
+                <span>${t.topic || t}...</span>
+                <span style="font-weight:700;color:${color}">${t.ar || ""}${t.ar ? "%" : ""}</span>
+              </div>
+            `).join("")}
+          </div>`;
+      };
+
+      return `
+        <div style="display:flex;gap:16px;margin:24px 0 32px">
+          ${!phase1excluded ? phaseCard(phase1, "#8B5CF6", "#F5F3FF", "KNOWLEDGE RETRIEVAL", "", "") : ""}
+          ${phaseCard(phase2, "#10B981", "#ECFDF5", "AUTOMATION WITH PROCEDURES", phase1excluded ? "QUICK WIN" : "", "#059669")}
+          ${phaseCard(phase3, "#11110D", "#F5F5F2", "AUTOMATION WITH INTEGRATIONS", "ID TARGET", "#11110D")}
+        </div>
+        <div style="font-size:11px;color:#666;font-style:italic;margin-bottom:24px">
+          ${data.agents.extractedData?.totalTopics || "148"} support topics benchmarked across the Zendesk customer base.
+        </div>
+      `;
+    };
+
     const sectionBlock = (key, label) => {
       if (!draft[key] || data.skipped[key]) return "";
       return `
@@ -1747,6 +1792,8 @@ export default function App() {
             </div>
             <span style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${ZD.coconut}">${label}</span>
           </div>
+          <!-- Visual charts for AI Agents -->
+          ${key === "agents" ? automationCharts() : ""}
           <!-- Content -->
           <div style="padding:0 4px;color:${ZD.licorice}">
             ${md(draft[key])}
