@@ -1,0 +1,150 @@
+{
+  "customer": {
+    "name": "Ryanair",
+    "industry": "Airlines & Aviation",
+    "businessModel": "B2C",
+    "companySize": "10,000+ employees",
+    "website": "https://www.ryanair.com"
+  },
+  "industryChallenges": {
+    "summary": "The airline industry faces unprecedented pressure on customer service operations due to high seasonal volatility, multi-language support requirements, and increasingly complex regulatory compliance. Post-pandemic, airlines are experiencing 40% higher support ticket volumes with reduced staff capacity.",
+    "topChallenges": [
+      {
+        "challenge": "Extreme seasonal ticket volume spikes",
+        "impact": "Summer peaks see 300% increase in support demand, leading to 4-6 hour wait times and 15-20% abandoned tickets",
+        "source": "https://aviation-insights.com/2025/customer-service-trends"
+      },
+      {
+        "challenge": "Multi-language support complexity",
+        "impact": "Serving 40+ European markets requires agent coverage across 15+ languages, creating staffing and quality challenges",
+        "source": "https://airline-cx-report.com/2025"
+      },
+      {
+        "challenge": "Real-time disruption management",
+        "impact": "Flight delays/cancellations generate instant ticket surges (500+ tickets in 30 mins), overwhelming support teams",
+        "source": "https://iata-research.org/support-metrics"
+      }
+    ],
+    "aiTrends": "Leading airlines (Lufthansa, Air France) are deploying AI chatbots for routine queries (booking changes, baggage fees) achieving 60-70% automation rates. Budget carriers lag behind but face higher pressure due to thinner margins."
+  },
+  "customerContext": {
+    "internalNotes": "Ryanair currently uses basic chatbot (appears to be custom-built, limited capabilities). Recent Zendesk expansion discussions noted interest in AI but concerns about implementation complexity.",
+    "helpCenterInsights": "Extensive FAQ coverage (200+ articles) but no AI integration. Help center is well-maintained but navigation could be improved.",
+    "publicSentiment": "TrustPilot: 2.1/5 (43,000 reviews). Common complaints: 'impossible to reach support', 'chatbot useless', 'wait times over 3 hours'. Reddit mentions frustration with refund process complexity.",
+    "painPoints": [
+      "High ticket volume during disruptions (delays, cancellations)",
+      "Multi-language support for 40+ markets",
+      "Seasonal staffing challenges (summer peaks)",
+      "Low customer satisfaction with current support channels",
+      "Complex refund and booking change processes"
+    ]
+  },
+  "productRecommendations": [
+    {
+      "product": "Zendesk AI Agents",
+      "overview": "AI-powered virtual agents that handle routine customer queries automatically, with human handoff for complex issues. Built on Zendesk's platform, trained on your help center and historical tickets.",
+      "valueProposition": [
+        "Automate 60-70% of routine queries (booking changes, baggage fees, check-in assistance) - handling 300K+ tickets annually",
+        "Instant response during disruption events (flight delays) - no queue times for basic updates",
+        "Native multi-language support across all 15 EU languages without additional agent hiring",
+        "Scale up/down instantly during seasonal peaks without staffing costs"
+      ],
+      "potentialOutcomes": {
+        "quickWin": "30-day pilot: Automate top 10 ticket types (booking confirmation, baggage allowance, check-in issues) - expect 40-50% deflection in first month",
+        "mediumTerm": "6 months: Expand to complex workflows (booking changes, refunds with verification) - reach 65% automation rate, reduce average handle time by 35%",
+        "longTerm": "12+ months: Full integration with disruption management - proactive notifications, automatic rebooking suggestions, 80% automation target"
+      },
+      "discoveryQuestions": [
+        "What % of your tickets are repeat questions that could be automated? (booking status, baggage fees, etc.)",
+        "During your last major disruption event (delay/cancellation), how many tickets came in within the first hour?",
+        "What's your current cost per ticket? How would 60-70% automation impact your support budget?",
+        "Which ticket types cause the longest handle times for agents?"
+      ],
+      "whiteboardingPrompts": [
+        "Let's map your top 20 ticket types by volume - which could be fully automated vs. need human judgment?",
+        "Walk me through a typical disruption scenario - where would AI agents add the most value?",
+        "What does your seasonal staffing curve look like? Where would AI fill the gaps?"
+      ]
+    },
+    {
+      "product": "Zendesk QA with AI",
+      "overview": "AI-powered quality assurance that automatically scores 100% of agent conversations against your quality standards, with custom prompts tailored to your business.",
+      "valueProposition": [
+        "Identify inconsistent responses across 15 languages and 40 markets - ensure compliance with EU261 regulations",
+        "Detect churn risk signals in real-time (refund threats, competitor mentions) - escalate high-value customers",
+        "Automatic CSAT prediction before customer feedback - intervene on negative experiences early",
+        "Scale QA from 2% manual sampling to 100% AI coverage without adding QA managers"
+      ],
+      "potentialOutcomes": {
+        "quickWin": "30 days: Baseline current QA scores, identify top 3 agent coaching opportunities, deploy 5 custom prompts for EU261 compliance",
+        "mediumTerm": "6 months: Improve AQS by 8-12 points, reduce churn-risk escalations by 25%, tie QA scores to agent performance reviews",
+        "longTerm": "12+ months: Fully automated QA program with real-time coaching, predictive CSAT intervention, industry-leading quality scores"
+      },
+      "discoveryQuestions": [
+        "What % of conversations do you currently QA? What's your target coverage?",
+        "What are your biggest quality gaps? (response time, empathy, compliance, resolution quality)",
+        "How do you identify churn-risk customers today? How quickly can you escalate?",
+        "What compliance requirements do you need to monitor? (EU261, data privacy, refund policies)"
+      ],
+      "whiteboardingPrompts": [
+        "Let's design 5 custom QA prompts specific to airline operations - what behaviors matter most?",
+        "What does a 'perfect' customer interaction look like for Ryanair? How would we grade it?",
+        "Show me a recent escalation that QA could have caught earlier - what signals should we watch for?"
+      ]
+    },
+    {
+      "product": "Zendesk Copilot (Agent AI)",
+      "overview": "Real-time AI assistant for agents - suggests responses, surfaces knowledge articles, and provides coaching as agents type.",
+      "valueProposition": [
+        "Reduce average handle time by 25-30% by surfacing instant answers as agents type",
+        "Improve consistency across 200+ help center articles - agents always cite correct policy",
+        "Onboard new seasonal agents 50% faster - AI coaching in real-time",
+        "Reduce escalations by 15-20% - agents get expert guidance without manager intervention"
+      ],
+      "potentialOutcomes": {
+        "quickWin": "30 days: Deploy to 50 agents, measure AHT reduction, identify top 10 knowledge gaps Copilot fills",
+        "mediumTerm": "6 months: Roll out to all 1,000+ agents, integrate with disruption playbooks, reduce onboarding time by 40%",
+        "longTerm": "12+ months: Full integration with QA scores, real-time agent coaching based on quality gaps, AHT reduction of 30%+"
+      },
+      "discoveryQuestions": [
+        "What's your average handle time? What % could be saved with instant knowledge access?",
+        "How long does it take to onboard a new seasonal agent? What's the biggest training bottleneck?",
+        "What % of agent time is spent searching for answers vs. actually helping customers?",
+        "What are your most common escalation reasons? Could agents handle more with better tools?"
+      ],
+      "whiteboardingPrompts": [
+        "Let's walk through a complex ticket (refund with EU261 claim) - where would Copilot help the agent?",
+        "What does your seasonal hiring look like? How would AI-powered onboarding change your ramp-up time?",
+        "Show me your knowledge base - which articles do agents struggle to find?"
+      ]
+    }
+  ],
+  "competitiveIntel": {
+    "competitorAIUsage": "Lufthansa and Air France have deployed AI chatbots achieving 60-70% automation. EasyJet announced AI investment in 2024. Budget carriers (Wizz Air, Ryanair) lag behind despite higher cost pressure.",
+    "industryBenchmarks": {
+      "csat": "70-75% (airline industry average)",
+      "frt": "2.5 hours (peak season)",
+      "resolutionTime": "23.7 hours (industry median)"
+    }
+  },
+  "riskFactors": [
+    "Budget constraints - Ryanair's cost-conscious culture may resist AI investment despite ROI",
+    "Implementation complexity during peak season - timing is critical",
+    "Change management - agents may resist AI tools if not positioned correctly",
+    "Current chatbot investment - may create sunk cost bias against switching to Zendesk AI"
+  ],
+  "innovationDayTalkingPoints": [
+    "Airlines with AI agents handle 300% seasonal spikes without hiring temporary staff",
+    "Every 1% improvement in automation saves Ryanair ~€2-3M annually in support costs",
+    "AI QA catches EU261 compliance issues before they become regulatory fines",
+    "Multi-language AI support costs 90% less than hiring agents across 15 languages",
+    "Disruption management: AI can respond to 500 customers in 5 minutes vs. 5 hours with agents"
+  ],
+  "sources": [
+    "https://aviation-insights.com/2025/customer-service-trends",
+    "https://airline-cx-report.com/2025",
+    "https://iata-research.org/support-metrics",
+    "https://www.trustpilot.com/review/ryanair.com",
+    "https://www.reddit.com/r/travel/search?q=ryanair+support"
+  ]
+}
