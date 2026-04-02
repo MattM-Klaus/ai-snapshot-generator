@@ -429,10 +429,13 @@ function StepHdr({ num, title, sub }) {
 }
 
 // ─── CX OVERVIEW STEP ────────────────────────────────────────────────────────
-function CXStep({ data, onChange, skipped, onSkip, apiKey }) {
+function CXStep({ data, onChange, skipped, onSkip, apiKey, onImportJSON }) {
   const set = f => v => onChange({ ...data, [f]: v });
   const [searchStatus, setSearchStatus] = useState("idle");
   const [elapsed, setElapsed] = useState(0);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importJSON, setImportJSON] = useState("");
+  const [importError, setImportError] = useState(null);
 
   useEffect(() => {
     if (searchStatus !== "loading") { setElapsed(0); return; }
@@ -467,9 +470,77 @@ Be specific to this company — not generic. Use bullet points. Note where you'r
     }
   };
 
+  const handleImportJSON = () => {
+    try {
+      setImportError(null);
+      const parsed = JSON.parse(importJSON);
+      onImportJSON(parsed);
+      setShowImportModal(false);
+      setImportJSON("");
+    } catch (e) {
+      setImportError("Invalid JSON format. Please check and try again.");
+    }
+  };
+
   return (
     <div>
       <StepHdr num="01" title="CX Overview" sub="Company details and AI-powered research. Bullseye context is optional but improves the report." />
+
+      {/* IMPORT JSON BUTTON */}
+      <Card style={{ background: T.indigoBg, border: `1.5px solid ${T.indigoBorder}`, marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: T.indigo, marginBottom: 3 }}>
+              🤖 Import from AI Snapshot Agent
+            </div>
+            <div style={{ fontSize: 11.5, color: T.indigo, opacity: 0.7, lineHeight: 1.5 }}>
+              Have JSON output from ChatGPT AI Snapshot Agent? Import it here to auto-populate all fields.
+            </div>
+          </div>
+          <Btn variant="ai" onClick={() => setShowImportModal(true)} style={{ flexShrink: 0 }}>
+            Import JSON
+          </Btn>
+        </div>
+      </Card>
+
+      {/* IMPORT JSON MODAL */}
+      {showImportModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex",
+          alignItems: "center", justifyContent: "center", zIndex: 9999, padding: 20 }}>
+          <div style={{ background: T.white, borderRadius: 12, maxWidth: 680, width: "100%",
+            maxHeight: "80vh", overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
+            <div style={{ padding: "20px 24px", borderBottom: `1px solid ${T.border}` }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: T.dark, marginBottom: 4 }}>
+                Import from AI Snapshot Agent
+              </div>
+              <div style={{ fontSize: 12, color: T.inkMid }}>
+                Paste the complete JSON output from your ChatGPT AI Snapshot Agent below.
+              </div>
+            </div>
+            <div style={{ padding: 24 }}>
+              <Txta value={importJSON} onChange={setImportJSON} rows={14} mono
+                placeholder='{\n  "customer": {\n    "name": "Ryanair",\n    "industry": "Airlines & Aviation",\n    ...\n  },\n  "industryChallenges": { ... },\n  "productRecommendations": [ ... ]\n}'
+                style={{ fontSize: 11.5, lineHeight: 1.6 }} />
+              {importError && (
+                <div style={{ marginTop: 10, padding: "10px 12px", background: T.redBg,
+                  border: `1px solid ${T.redBorder}`, borderRadius: 7, fontSize: 12, color: T.red }}>
+                  {importError}
+                </div>
+              )}
+            </div>
+            <div style={{ padding: "16px 24px", borderTop: `1px solid ${T.border}`,
+              display: "flex", justifyContent: "flex-end", gap: 10 }}>
+              <Btn variant="ghost" onClick={() => { setShowImportModal(false); setImportJSON(""); setImportError(null); }}>
+                Cancel
+              </Btn>
+              <Btn variant="ai" onClick={handleImportJSON} disabled={!importJSON.trim()}>
+                Import & Populate Fields
+              </Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
       <SkipBanner skipped={skipped} onChange={onSkip} label="CX Overview" />
       {!skipped && <>
         <Card>
@@ -1688,6 +1759,108 @@ export default function App() {
   const set = section => val => setData(p => ({ ...p, [section]: val }));
   const setSkip = key => val => setData(p => ({ ...p, skipped: { ...p.skipped, [key]: val } }));
 
+  const handleImportJSON = (json) => {
+    // Map ChatGPT AI Snapshot Agent JSON to app data structure
+    const updated = { ...data };
+
+    // CX Overview section
+    if (json.customer) {
+      updated.cx.name = json.customer.name || "";
+      updated.cx.website = json.customer.website || "";
+      updated.cx.industry = json.customer.industry || "";
+    }
+
+    // Build comprehensive additional context from multiple JSON sections
+    const contextParts = [];
+
+    if (json.industryChallenges?.summary) {
+      contextParts.push(`**Industry Challenges:**\n${json.industryChallenges.summary}`);
+    }
+
+    if (json.industryChallenges?.topChallenges?.length) {
+      contextParts.push(`\n**Key Challenges:**\n${json.industryChallenges.topChallenges.map(c => `- ${c.challenge}: ${c.impact}`).join('\n')}`);
+    }
+
+    if (json.customerContext?.painPoints?.length) {
+      contextParts.push(`\n**Customer Pain Points:**\n${json.customerContext.painPoints.map(p => `- ${p}`).join('\n')}`);
+    }
+
+    if (json.innovationDayTalkingPoints?.length) {
+      contextParts.push(`\n**Innovation Day Key Points:**\n${json.innovationDayTalkingPoints.map(p => `- ${p}`).join('\n')}`);
+    }
+
+    if (contextParts.length > 0) {
+      updated.cx.additionalContext = contextParts.join('\n\n');
+    }
+
+    // Build web research section from customer context
+    const researchParts = [];
+
+    if (json.customerContext?.internalNotes) {
+      researchParts.push(`**Internal Notes:**\n${json.customerContext.internalNotes}`);
+    }
+
+    if (json.customerContext?.publicSentiment) {
+      researchParts.push(`\n**Public Sentiment:**\n${json.customerContext.publicSentiment}`);
+    }
+
+    if (json.industryChallenges?.aiTrends) {
+      researchParts.push(`\n**AI Trends in Industry:**\n${json.industryChallenges.aiTrends}`);
+    }
+
+    if (researchParts.length > 0) {
+      updated.cx.webResearch = researchParts.join('\n\n');
+    }
+
+    // QA section - add insights to notes
+    const qaInsights = json.productRecommendations?.find(p =>
+      p.product?.includes("QA") || p.product?.includes("Zendesk QA")
+    );
+    if (qaInsights) {
+      const qaNotes = [];
+      if (qaInsights.valueProposition?.length) {
+        qaNotes.push(`**QA Opportunities:**\n${qaInsights.valueProposition.join('\n- ')}`);
+      }
+      if (qaInsights.discoveryQuestions?.length) {
+        qaNotes.push(`\n**Discovery Questions:**\n${qaInsights.discoveryQuestions.join('\n- ')}`);
+      }
+      if (qaNotes.length > 0) {
+        updated.qa.notes = qaNotes.join('\n\n');
+      }
+    }
+
+    // AI Agents section - add insights to notes
+    const agentsInsights = json.productRecommendations?.find(p =>
+      p.product?.includes("Agent") || p.product?.includes("AI Agent")
+    );
+    if (agentsInsights) {
+      const agentNotes = [];
+      if (agentsInsights.valueProposition?.length) {
+        agentNotes.push(`**AI Agents Opportunities:**\n${agentsInsights.valueProposition.join('\n- ')}`);
+      }
+      if (agentsInsights.potentialOutcomes) {
+        agentNotes.push(`\n**Potential Outcomes:**`);
+        if (agentsInsights.potentialOutcomes.quickWin) {
+          agentNotes.push(`- Quick Win: ${agentsInsights.potentialOutcomes.quickWin}`);
+        }
+        if (agentsInsights.potentialOutcomes.mediumTerm) {
+          agentNotes.push(`- Medium Term: ${agentsInsights.potentialOutcomes.mediumTerm}`);
+        }
+        if (agentsInsights.potentialOutcomes.longTerm) {
+          agentNotes.push(`- Long Term: ${agentsInsights.potentialOutcomes.longTerm}`);
+        }
+      }
+      if (agentsInsights.discoveryQuestions?.length) {
+        agentNotes.push(`\n**Discovery Questions:**\n${agentsInsights.discoveryQuestions.join('\n- ')}`);
+      }
+      if (agentNotes.length > 0) {
+        updated.agents.notes = agentNotes.join('\n\n');
+      }
+    }
+
+    setData(updated);
+  };
+
   const handleExport = (draft) => {
     // Build and download as HTML file — user opens it and prints to PDF
     // This avoids all popup blocking issues
@@ -2046,7 +2219,7 @@ export default function App() {
 
       {/* CONTENT */}
       <div style={{ maxWidth: 840, margin: "0 auto", padding: "26px 20px 80px" }}>
-        {step === 0 && <CXStep data={data.cx} onChange={set("cx")} skipped={data.skipped.cx} onSkip={setSkip("cx")} apiKey={apiKey} />}
+        {step === 0 && <CXStep data={data.cx} onChange={set("cx")} skipped={data.skipped.cx} onSkip={setSkip("cx")} apiKey={apiKey} onImportJSON={handleImportJSON} />}
         {step === 1 && <QAStep data={{...data.qa, _companyName: data.cx.name, _website: data.cx.website, _industry: data.cx.industry}} onChange={v => set("qa")({...v, _companyName: undefined, _website: undefined, _industry: undefined})} skipped={data.skipped.qa} onSkip={setSkip("qa")} apiKey={apiKey} />}
         {step === 2 && <AgentsStep data={data.agents} onChange={set("agents")} skipped={data.skipped.agents} onSkip={setSkip("agents")} apiKey={apiKey} />}
         {step === 3 && <SettingsStep data={data.settings} onChange={set("settings")} />}
