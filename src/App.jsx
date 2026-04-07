@@ -1886,17 +1886,24 @@ export default function App() {
           // Skip markdown table separator rows (e.g., |---|---|---|)
           if (/^\|[\s\-:]+\|$/.test(row)) return "";
           const cells = row.split("|").filter(c => c.trim() !== "");
-          return `<tr>${cells.map(c => `<td style="padding:7px 12px;border-bottom:1px solid ${ZD.sesame200};font-size:12px;line-height:1.5">${c.trim()}</td>`).join("")}</tr>`;
+          const isHeader = row.indexOf("Priority") !== -1 || row.indexOf("Metric") !== -1 || row.indexOf("Issue") !== -1;
+          if (isHeader) {
+            return `<tr style="background:${ZD.licorice}">${cells.map(c => `<th style="padding:10px 14px;font-size:11px;font-weight:700;color:${ZD.coconut};text-align:left;letter-spacing:0.05em;text-transform:uppercase">${c.trim()}</th>`).join("")}</tr>`;
+          }
+          return `<tr style="border-bottom:1px solid ${ZD.sesame200}">${cells.map(c => `<td style="padding:10px 14px;font-size:12px;line-height:1.6">${c.trim()}</td>`).join("")}</tr>`;
         })
-        .replace(/^[-•] (.+)$/gm, `<li style="margin:5px 0;line-height:1.65;font-size:13px">$1</li>`)
-        .replace(/^(\d+)\. (.+)$/gm, `<li style="margin:5px 0;line-height:1.65;font-size:13px">$2</li>`);
+        .replace(/^[-•] (.+)$/gm, `<li style="margin:8px 0;line-height:1.7;font-size:13px;padding-left:8px">$1</li>`)
+        .replace(/^(\d+)\. (.+)$/gm, `<li style="margin:8px 0;line-height:1.7;font-size:13px;padding-left:8px">$2</li>`);
 
       // Wrap consecutive <tr> in table
       html = html.replace(/(<tr>[\s\S]*?<\/tr>\n?)+/g, m =>
-        `<table style="width:100%;border-collapse:collapse;margin:12px 0;background:${ZD.sesame};border-radius:8px;overflow:hidden">${m}</table>`);
+        `<table style="width:100%;border-collapse:collapse;margin:20px 0;background:${ZD.white};border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid ${ZD.sesame200}">${m}</table>`);
       // Wrap consecutive <li> in ul
       html = html.replace(/(<li[^>]*>[\s\S]*?<\/li>\n?)+/g, m =>
-        `<ul style="margin:10px 0 10px 20px;padding:0">${m}</ul>`);
+        `<ul style="margin:16px 0;padding:0 0 0 24px;list-style:none">
+          <style>ul li:before { content:"▸";color:${ZD.teal};font-weight:700;display:inline-block;width:16px;margin-left:-24px;}</style>
+          ${m}
+        </ul>`);
       // Wrap remaining lines in <p>
       html = html.replace(/^(?!<[htuol]|\s*$)(.+)$/gm,
         `<p style="margin:8px 0;line-height:1.7;font-size:13px;color:${ZD.licorice}">$1</p>`);
@@ -1910,6 +1917,87 @@ export default function App() {
 
     // Encapsulated icon (black circle + emoji) for section headers
     const sectionIcon = { cx: "◎", qa: "◈", agents: "◆", conclusion: "▶" };
+
+    // Generate SVG donut chart for QA score
+    const generateDonutChart = (score, benchmark = QA_BENCHMARK) => {
+      if (!score) return "";
+      const radius = 70;
+      const circumference = 2 * Math.PI * radius;
+      const scoreOffset = circumference - (score / 100) * circumference;
+      const benchmarkOffset = circumference - (benchmark / 100) * circumference;
+      const isAbove = parseFloat(score) >= benchmark;
+      const color = isAbove ? ZD.matchaDark : "#DC2626";
+
+      return `
+        <div style="position:relative;width:180px;height:180px;margin:0 auto 24px">
+          <svg width="180" height="180" viewBox="0 0 180 180">
+            <!-- Background circle -->
+            <circle cx="90" cy="90" r="${radius}" fill="none" stroke="${ZD.sesame200}" stroke-width="12"/>
+            <!-- Benchmark ring (light) -->
+            <circle cx="90" cy="90" r="${radius}" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="12"
+              stroke-dasharray="${circumference}" stroke-dashoffset="${benchmarkOffset}"
+              transform="rotate(-90 90 90)" stroke-linecap="round"/>
+            <!-- Score ring -->
+            <circle cx="90" cy="90" r="${radius}" fill="none" stroke="${color}" stroke-width="12"
+              stroke-dasharray="${circumference}" stroke-dashoffset="${scoreOffset}"
+              transform="rotate(-90 90 90)" stroke-linecap="round"/>
+          </svg>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+            <div style="font-size:42px;font-weight:800;color:${color};line-height:1">${score}%</div>
+            <div style="font-size:11px;color:#666;margin-top:4px">vs ${benchmark}%</div>
+            <div style="font-size:10px;color:${color};margin-top:2px;font-weight:700">${isAbove ? "+" : ""}${qaGap}pts</div>
+          </div>
+        </div>
+      `;
+    };
+
+    // Generate horizontal bar chart for QA categories
+    const generateCategoryBars = () => {
+      const cats = data.qa.extractedData?.categories || [];
+      if (cats.length === 0) return "";
+
+      return `
+        <div style="margin:24px 0">
+          <div style="font-size:13px;font-weight:700;color:${ZD.licorice};margin-bottom:16px">Performance by Category</div>
+          ${cats.map(cat => {
+            const score = parseFloat(cat.score) || 0;
+            const benchmark = parseFloat(cat.benchmark) || QA_BENCHMARK;
+            const isAbove = score >= benchmark;
+            const color = isAbove ? ZD.matchaDark : "#DC2626";
+            const maxVal = Math.max(score, benchmark, 100);
+
+            return `
+              <div style="margin-bottom:16px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                  <span style="font-size:12px;font-weight:600;color:${ZD.licorice}">${cat.category}</span>
+                  <span style="font-size:12px;color:#666">${score}% vs ${benchmark}%</span>
+                </div>
+                <div style="display:flex;gap:4px;align-items:center;height:24px">
+                  <div style="flex:1;background:${ZD.sesame};border-radius:4px;height:24px;position:relative;overflow:hidden">
+                    <div style="height:100%;background:${color};width:${(score/maxVal)*100}%;border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px">
+                      <span style="font-size:11px;font-weight:700;color:#fff">${score}%</span>
+                    </div>
+                    <div style="position:absolute;left:${(benchmark/maxVal)*100}%;top:0;bottom:0;width:2px;background:rgba(0,0,0,0.3)"></div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    };
+
+    // Visual stat block
+    const statBlock = (value, label, sublabel, icon, color) => {
+      return `
+        <div style="flex:1;background:${ZD.sesame};border-radius:12px;padding:20px;text-align:center;min-width:140px">
+          <div style="font-size:14px;margin-bottom:8px">${icon}</div>
+          <div style="font-size:36px;font-weight:800;color:${color};line-height:1;letter-spacing:-0.02em">${value}</div>
+          <div style="font-size:12px;font-weight:600;color:${ZD.licorice};margin-top:8px">${label}</div>
+          ${sublabel ? `<div style="font-size:10px;color:#888;margin-top:2px">${sublabel}</div>` : ""}
+        </div>
+      `;
+    };
 
     // Generate visual automation chart cards for AI Agents section
     const automationCharts = () => {
@@ -1970,6 +2058,25 @@ export default function App() {
 
     const sectionBlock = (key, label) => {
       if (!draft[key] || data.skipped[key]) return "";
+
+      // Add visual elements based on section
+      let visualElements = "";
+
+      // QA Section: Donut chart + category bars
+      if (key === "qa" && data.qa.overallScore) {
+        visualElements = `
+          <div style="background:${ZD.sesame};border-radius:12px;padding:24px;margin-bottom:24px">
+            ${generateDonutChart(data.qa.overallScore)}
+            ${generateCategoryBars()}
+          </div>
+        `;
+      }
+
+      // AI Agents Section: Phase cards (already exists)
+      if (key === "agents") {
+        visualElements = automationCharts();
+      }
+
       return `
         <div style="margin-bottom:40px">
           <!-- Section header bar -->
@@ -1979,8 +2086,8 @@ export default function App() {
             </div>
             <span style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${ZD.coconut}">${label}</span>
           </div>
-          <!-- Visual charts for AI Agents -->
-          ${key === "agents" ? automationCharts() : ""}
+          <!-- Visual elements -->
+          ${visualElements}
           <!-- Content -->
           <div style="padding:0 4px;color:${ZD.licorice}">
             ${md(draft[key])}
